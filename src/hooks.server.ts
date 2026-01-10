@@ -28,55 +28,9 @@ function getTodaysMission(): string {
 }
 
 /**
- * Send push notification using Web Push protocol
- */
-async function sendPushNotification(
-	subscription: { endpoint: string; p256dh: string; auth: string },
-	payload: object,
-	vapidKeys: { publicKey: string; privateKey: string; subject: string }
-): Promise<boolean> {
-	try {
-		const payloadString = JSON.stringify(payload);
-		const encrypted = await encryptPayload(payloadString, subscription.p256dh, subscription.auth);
-
-		const vapidHeaders = await createVapidAuthHeader(
-			subscription.endpoint,
-			vapidKeys.subject,
-			vapidKeys.publicKey,
-			vapidKeys.privateKey
-		);
-
-		const response = await fetch(subscription.endpoint, {
-			method: 'POST',
-			headers: {
-				...vapidHeaders,
-				'Content-Type': 'application/octet-stream',
-				'Content-Encoding': 'aes128gcm',
-				'Content-Length': encrypted.byteLength.toString(),
-				TTL: '86400'
-			},
-			body: encrypted as unknown as BodyInit
-		});
-
-		if (response.status === 410 || response.status === 404) {
-			// Subscription expired or invalid
-			return false;
-		}
-
-		return response.ok;
-	} catch (error) {
-		console.error('Error sending push notification:', error);
-		return false;
-	}
-}
-
-/**
  * Handle scheduled cron trigger for daily push notifications
  */
-export async function handleScheduled(
-	event: ScheduledEvent,
-	env: Env
-): Promise<void> {
+export async function handleScheduled(event: ScheduledEvent, env: Env): Promise<void> {
 	console.log('Cron triggered at:', new Date(event.scheduledTime).toISOString());
 
 	const db = env.DB;
@@ -87,14 +41,14 @@ export async function handleScheduled(
 
 	// Get today's mission
 	const mission = getTodaysMission();
-	const payload = {
-		title: "Today's Kindness Mission",
+	const payload = JSON.stringify({
+		title: "🌟 Today's Kindness Mission",
 		body: mission,
 		icon: '/icons/icon-192.svg',
 		badge: '/icons/icon-192.svg',
 		tag: 'kindness-mission',
 		data: { url: '/' }
-	};
+	});
 
 	// Get all active subscriptions
 	const { results } = await db
@@ -108,20 +62,40 @@ export async function handleScheduled(
 
 	console.log(`Sending notifications to ${results.length} subscribers`);
 
-	const vapidKeys = {
-		publicKey: env.VAPID_PUBLIC_KEY,
-		privateKey: env.VAPID_PRIVATE_KEY,
-		subject: env.VAPID_SUBJECT || 'mailto:hello@kindspread.app'
-	};
+	const vapidSubject = env.VAPID_SUBJECT || 'mailto:hello@kindspread.app';
 
-	// Send notifications in batches
+	// Send notifications
 	const expiredEndpoints: string[] = [];
 
 	await Promise.all(
 		results.map(async (subscription) => {
-			const success = await sendPushNotification(subscription, payload, vapidKeys);
-			if (!success) {
-				expiredEndpoints.push(subscription.endpoint);
+			try {
+				const encrypted = await encryptPayload(payload, subscription.p256dh, subscription.auth);
+
+				const vapidHeaders = await createVapidAuthHeader(
+					subscription.endpoint,
+					vapidSubject,
+					env.VAPID_PUBLIC_KEY,
+					env.VAPID_PRIVATE_KEY
+				);
+
+				const response = await fetch(subscription.endpoint, {
+					method: 'POST',
+					headers: {
+						...vapidHeaders,
+						'Content-Type': 'application/octet-stream',
+						'Content-Encoding': 'aes128gcm',
+						'Content-Length': encrypted.byteLength.toString(),
+						TTL: '86400'
+					},
+					body: encrypted as unknown as BodyInit
+				});
+
+				if (response.status === 410 || response.status === 404) {
+					expiredEndpoints.push(subscription.endpoint);
+				}
+			} catch (error) {
+				console.error('Push failed:', error);
 			}
 		})
 	);

@@ -4,6 +4,7 @@ const CACHE_NAME = 'kindspread-v1';
 
 // Install event - cache essential files
 self.addEventListener('install', (event) => {
+	console.log('[SW] Installing...');
 	event.waitUntil(
 		caches.open(CACHE_NAME).then((cache) => {
 			return cache.addAll(['/', '/manifest.json']);
@@ -14,6 +15,7 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+	console.log('[SW] Activating...');
 	event.waitUntil(
 		caches.keys().then((cacheNames) => {
 			return Promise.all(
@@ -30,11 +32,13 @@ self.addEventListener('activate', (event) => {
 
 // Push event - show notification when push is received
 self.addEventListener('push', (event) => {
+	console.log('[SW] Push received:', event);
+
 	const defaultData = {
 		title: "Today's Kindness Mission",
 		body: 'Open the app to see your daily mission!',
-		icon: '/icons/icon-192.png',
-		badge: '/icons/icon-192.png',
+		icon: '/icons/icon-192.svg',
+		badge: '/icons/icon-192.svg',
 		tag: 'kindness-mission',
 		data: {
 			url: '/'
@@ -46,30 +50,24 @@ self.addEventListener('push', (event) => {
 	if (event.data) {
 		try {
 			const payload = event.data.json();
+			console.log('[SW] Push payload:', payload);
 			data = { ...defaultData, ...payload };
 		} catch {
+			console.log('[SW] Push text:', event.data.text());
 			data.body = event.data.text() || data.body;
 		}
 	}
 
+	console.log('[SW] Showing notification:', data);
+
 	const options = {
 		body: data.body,
-		icon: data.icon || '/icons/icon-192.png',
-		badge: data.badge || '/icons/icon-192.png',
+		icon: data.icon || '/icons/icon-192.svg',
+		badge: data.badge || '/icons/icon-192.svg',
 		tag: data.tag || 'kindness-mission',
 		vibrate: [100, 50, 100],
 		data: data.data || { url: '/' },
-		actions: [
-			{
-				action: 'open',
-				title: 'View Mission'
-			},
-			{
-				action: 'dismiss',
-				title: 'Later'
-			}
-		],
-		requireInteraction: true
+		requireInteraction: false
 	};
 
 	event.waitUntil(self.registration.showNotification(data.title, options));
@@ -77,11 +75,8 @@ self.addEventListener('push', (event) => {
 
 // Notification click event - open the app
 self.addEventListener('notificationclick', (event) => {
+	console.log('[SW] Notification clicked');
 	event.notification.close();
-
-	if (event.action === 'dismiss') {
-		return;
-	}
 
 	const urlToOpen = event.notification.data?.url || '/';
 

@@ -3,7 +3,8 @@
 	"name": "kindspread",
 	"compatibility_date": "2026-01-10",
 	"compatibility_flags": [
-		"nodejs_als"
+		"nodejs_als",
+		"nodejs_compat"
 	],
 	"main": ".svelte-kit/cloudflare/_worker.js",
 	"assets": {
@@ -15,7 +16,7 @@
 	// D1 Database for storing push subscriptions
 	"d1_databases": [
 		{
-			"binding": "kindspread_db",
+			"binding": "DB",
 			"database_name": "kindspread-db",
 			"database_id": "70ce01f5-fb99-4b20-b07e-f563927c644d"
 		}

@@ -1,6 +1,10 @@
 /**
  * Script to generate VAPID keys for Web Push notifications
  * Run with: npx tsx scripts/generate-vapid-keys.ts
+ *
+ * These keys are in the correct format for Web Push:
+ * - Public key: 65 bytes, uncompressed EC point (base64url)
+ * - Private key: 32 bytes, raw EC private key (base64url)
  */
 
 async function generateVapidKeys() {
@@ -14,27 +18,22 @@ async function generateVapidKeys() {
 		['sign', 'verify']
 	);
 
-	// Export public key in raw format (for client)
+	// Export public key in raw/uncompressed format (65 bytes)
 	const publicKeyRaw = await crypto.subtle.exportKey('raw', keyPair.publicKey);
 	const publicKeyBase64Url = arrayBufferToBase64Url(publicKeyRaw);
 
-	// Export private key in PKCS8 format (for server)
-	const privateKeyPkcs8 = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
-	const privateKeyBase64Url = arrayBufferToBase64Url(privateKeyPkcs8);
+	// Export private key in JWK format to get the raw 'd' value
+	const privateKeyJwk = await crypto.subtle.exportKey('jwk', keyPair.privateKey);
+	const privateKeyBase64Url = privateKeyJwk.d!; // 'd' is already base64url encoded
 
 	console.log('\n🔐 VAPID Keys Generated Successfully!\n');
-	console.log('Add these to your Cloudflare Worker secrets:\n');
+	console.log('Add these to your .dev.vars file for local development:');
+	console.log('And use `wrangler secret put` for production.\n');
 	console.log('----------------------------------------');
-	console.log('VAPID_PUBLIC_KEY=');
-	console.log(publicKeyBase64Url);
-	console.log('\nVAPID_PRIVATE_KEY=');
-	console.log(privateKeyBase64Url);
-	console.log('\nVAPID_SUBJECT=mailto:your-email@example.com');
+	console.log(`VAPID_PUBLIC_KEY=${publicKeyBase64Url}`);
+	console.log(`VAPID_PRIVATE_KEY=${privateKeyBase64Url}`);
+	console.log('VAPID_SUBJECT=mailto:your-email@example.com');
 	console.log('----------------------------------------\n');
-	console.log('To set these secrets in Cloudflare, run:');
-	console.log('  wrangler secret put VAPID_PUBLIC_KEY');
-	console.log('  wrangler secret put VAPID_PRIVATE_KEY');
-	console.log('  wrangler secret put VAPID_SUBJECT\n');
 }
 
 function arrayBufferToBase64Url(buffer: ArrayBuffer): string {
@@ -48,4 +47,3 @@ function arrayBufferToBase64Url(buffer: ArrayBuffer): string {
 }
 
 generateVapidKeys().catch(console.error);
-
