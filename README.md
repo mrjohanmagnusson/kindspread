@@ -1,38 +1,77 @@
-# sv
+# KindSpread
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Spread kindness daily with simple missions. A Progressive Web App that sends you daily kindness reminders.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- 🌟 Daily kindness missions
+- 🔔 Push notifications (daily reminders)
+- 🌙 Dark/Light mode
+- 📱 PWA - Add to Home Screen support
+- ☁️ Runs on Cloudflare Workers
+
+## Setup
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm
+- Cloudflare account (for deployment)
+
+### Installation
 
 ```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+pnpm install
 ```
+
+### Database Setup (Cloudflare D1)
+
+1. Create a D1 database:
+```sh
+wrangler d1 create kindspread-db
+```
+
+2. Update `wrangler.jsonc` with your database ID
+
+3. Run the schema migration:
+```sh
+wrangler d1 execute kindspread-db --file=./schema.sql
+```
+
+### Push Notifications Setup
+
+1. Generate VAPID keys:
+```sh
+npx tsx scripts/generate-vapid-keys.ts
+```
+
+2. Set the secrets in Cloudflare:
+```sh
+wrangler secret put VAPID_PUBLIC_KEY
+wrangler secret put VAPID_PRIVATE_KEY
+wrangler secret put VAPID_SUBJECT
+```
+
+For local development, create a `.env` file (copy from `.env.example`).
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm dev
 ```
 
-## Building
-
-To create a production version of your app:
+## Building & Deployment
 
 ```sh
-npm run build
+pnpm build
+wrangler deploy
 ```
 
-You can preview the production build with `npm run preview`.
+## Cron Trigger
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+The app includes a cron trigger that sends daily push notifications at 8:00 AM UTC.
+This is configured in `wrangler.jsonc`.
+
+---
+
+Built with ☕ Swedish snus and passion for Svelte by [m7n.dev](https://m7n.dev)

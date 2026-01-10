@@ -2,12 +2,28 @@
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "kindspread",
 	"compatibility_date": "2026-01-10",
-	"compatibility_flags": ["nodejs_als"],
+	"compatibility_flags": [
+		"nodejs_als"
+	],
 	"main": ".svelte-kit/cloudflare/_worker.js",
 	"assets": {
 		"binding": "ASSETS",
 		"directory": ".svelte-kit/cloudflare"
 	},
 	"workers_dev": true,
-	"preview_urls": true
+	"preview_urls": true,
+	// D1 Database for storing push subscriptions
+	"d1_databases": [
+		{
+			"binding": "kindspread_db",
+			"database_name": "kindspread-db",
+			"database_id": "70ce01f5-fb99-4b20-b07e-f563927c644d"
+		}
+	],
+	// Cron trigger for daily push notifications (8:00 AM UTC)
+	"triggers": {
+		"crons": [
+			"0 8 * * *"
+		]
+	}
 }

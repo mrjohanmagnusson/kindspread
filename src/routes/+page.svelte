@@ -1,5 +1,13 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
+	import {
+		isPushSupported,
+		getNotificationPermission,
+		subscribeToPush,
+		unsubscribeFromPush,
+		isSubscribedToPush
+	} from '$lib/push';
 
 	// Sample missions - later this could come from a database
 	const missions = [
@@ -51,6 +59,41 @@
 
 	function toggleDarkMode() {
 		darkMode = !darkMode;
+	}
+
+	// Push notification state
+	let pushSupported = $state(false);
+	let notificationPermission = $state<NotificationPermission | 'unsupported'>('default');
+	let isSubscribed = $state(false);
+	let isSubscribing = $state(false);
+
+	onMount(async () => {
+		pushSupported = isPushSupported();
+		notificationPermission = getNotificationPermission();
+		if (pushSupported && notificationPermission === 'granted') {
+			isSubscribed = await isSubscribedToPush();
+		}
+	});
+
+	async function handleSubscribe() {
+		isSubscribing = true;
+		try {
+			const subscription = await subscribeToPush();
+			isSubscribed = subscription !== null;
+			notificationPermission = getNotificationPermission();
+		} finally {
+			isSubscribing = false;
+		}
+	}
+
+	async function handleUnsubscribe() {
+		isSubscribing = true;
+		try {
+			await unsubscribeFromPush();
+			isSubscribed = false;
+		} finally {
+			isSubscribing = false;
+		}
 	}
 </script>
 
@@ -121,6 +164,54 @@
 				{/if}
 			</div>
 		</div>
+
+		<!-- Notification Subscription Card -->
+		{#if pushSupported}
+			<div class="mt-6 rounded-2xl p-6 border transition-colors duration-300 {darkMode ? 'bg-gray-800/60 border-gray-700' : 'bg-white/80 border-gray-100'}">
+				<div class="flex items-center justify-between gap-4">
+					<div class="flex items-center gap-3">
+						<div class="p-2 rounded-full {darkMode ? 'bg-rose-900/50' : 'bg-rose-100'}">
+							<svg class="w-5 h-5 {darkMode ? 'text-rose-400' : 'text-rose-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+							</svg>
+						</div>
+						<div>
+							<p class="font-medium {darkMode ? 'text-gray-200' : 'text-gray-800'}">Daily Reminders</p>
+							<p class="text-sm {darkMode ? 'text-gray-400' : 'text-gray-500'}">
+								{#if isSubscribed}
+									You'll receive daily mission reminders
+								{:else if notificationPermission === 'denied'}
+									Notifications are blocked in browser settings
+								{:else}
+									Get notified each morning with your mission
+								{/if}
+							</p>
+						</div>
+					</div>
+					<div>
+						{#if notificationPermission === 'denied'}
+							<span class="text-sm {darkMode ? 'text-gray-500' : 'text-gray-400'}">Blocked</span>
+						{:else if isSubscribed}
+							<button
+								onclick={handleUnsubscribe}
+								disabled={isSubscribing}
+								class="px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer disabled:opacity-50 {darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}"
+							>
+								{isSubscribing ? 'Updating...' : 'Turn Off'}
+							</button>
+						{:else}
+							<button
+								onclick={handleSubscribe}
+								disabled={isSubscribing}
+								class="px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer disabled:opacity-50 bg-linear-to-r from-rose-500 to-amber-500 text-white hover:shadow-lg"
+							>
+								{isSubscribing ? 'Enabling...' : 'Enable'}
+							</button>
+						{/if}
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		<!-- Stats/Info Section -->
 		<div class="mt-8 grid grid-cols-2 gap-4">

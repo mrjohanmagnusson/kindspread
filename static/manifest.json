@@ -1,0 +1,24 @@
+{
+	"name": "KindSpread",
+	"short_name": "KindSpread",
+	"description": "Spread kindness daily with simple missions",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#fef7ed",
+	"theme_color": "#f43f5e",
+	"orientation": "portrait-primary",
+	"icons": [
+		{
+			"src": "/icons/icon-192.svg",
+			"sizes": "192x192",
+			"type": "image/svg+xml",
+			"purpose": "any maskable"
+		},
+		{
+			"src": "/icons/icon-512.svg",
+			"sizes": "512x512",
+			"type": "image/svg+xml",
+			"purpose": "any maskable"
+		}
+	]
+}
