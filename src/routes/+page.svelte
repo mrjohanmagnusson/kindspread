@@ -206,7 +206,7 @@
 
 		<!-- Mission Card -->
 		<div
-			class="rounded-3xl border p-8 shadow-xl transition-colors duration-300 {darkMode
+			class="rounded-3xl border p-4 md:p-8 shadow-xl transition-colors duration-300 {darkMode
 				? 'border-gray-700 bg-gray-800'
 				: 'border-gray-100 bg-white'}"
 		>
@@ -306,7 +306,7 @@
 		<!-- Stats/Info Section -->
 		<div class="mt-8 grid grid-cols-3 gap-4">
 			<div
-				class="rounded-2xl border p-6 text-center backdrop-blur transition-colors duration-300 {darkMode
+				class="rounded-2xl border p-2 md:p-6 text-center backdrop-blur transition-colors duration-300 {darkMode
 					? 'border-gray-700 bg-gray-800/60'
 					: 'border-white/80 bg-white/60'}"
 			>
@@ -316,7 +316,7 @@
 				</p>
 			</div>
 			<div
-				class="rounded-2xl border p-6 text-center backdrop-blur transition-colors duration-300 {darkMode
+				class="rounded-2xl border p-2 md:p-6 text-center backdrop-blur transition-colors duration-300 {darkMode
 					? 'border-gray-700 bg-gray-800/60'
 					: 'border-white/80 bg-white/60'}"
 			>
@@ -327,7 +327,7 @@
 			</div>
 			<a
 				href={resolveRoute('/map')}
-				class="rounded-2xl border p-6 text-center backdrop-blur transition-colors duration-300 hover:scale-105 {darkMode
+				class="rounded-2xl border p-2 md:p-6 text-center backdrop-blur transition-colors duration-300 hover:scale-105 {darkMode
 					? 'border-gray-700 bg-gray-800/60 hover:bg-gray-800'
 					: 'border-white/80 bg-white/60 hover:bg-white'}"
 			>
