@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { resolveRoute } from '$app/paths';
+	import { HandHeart } from '@jis3r/icons';
 
 	interface Completion {
 		id: number;
@@ -19,17 +21,22 @@
 	let map: L.Map | null = null;
 	let hoursFilter = $state(24);
 
-	// Dark mode (same as main page)
-	let darkMode = $state(false);
+	// Dark mode - default to dark mode
+	let darkMode = $state(true);
 
 	onMount(async () => {
 		if (browser) {
 			const stored = localStorage.getItem('darkMode');
 			if (stored !== null) {
 				darkMode = stored === 'true';
-			} else {
-				darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
 			}
+			// If not stored, keep default (true = dark mode)
+
+			// Listen for dark mode changes from FloatingNav
+			const handleDarkModeChange = (e: CustomEvent<boolean>) => {
+				darkMode = e.detail;
+			};
+			window.addEventListener('darkModeChange', handleDarkModeChange as EventListener);
 		}
 
 		await loadCompletions();
@@ -88,10 +95,14 @@
 			}
 		});
 
-		// Custom heart icon
+		// Custom heart icon as inline SVG
 		const heartIcon = L.divIcon({
 			className: 'custom-heart-marker',
-			html: '<div class="heart-marker">💝</div>',
+			html: `<div class="heart-marker">
+				<svg viewBox="0 0 24 24" fill="#f43f5e" stroke="#f43f5e" stroke-width="1.5" style="width:28px;height:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));animation:heart-pulse 1.2s ease-in-out infinite">
+					<path d="M12 6C12 6 9 2 5.5 2C2.5 2 1 4.5 1 7C1 13 12 21 12 21C12 21 23 13 23 7C23 4.5 21.5 2 18.5 2C15 2 12 6 12 6Z" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+			</div>`,
 			iconSize: [30, 30],
 			iconAnchor: [15, 15]
 		});
@@ -101,13 +112,14 @@
 			const marker = L.marker([completion.latitude, completion.longitude], { icon: heartIcon });
 
 			const timeAgo = getTimeAgo(completion.completed_at);
-			const location = [completion.city, completion.country].filter(Boolean).join(', ') || 'Unknown location';
+			const location =
+				[completion.city, completion.country].filter(Boolean).join(', ') || 'Unknown location';
 
 			marker.bindPopup(`
 				<div class="popup-content">
 					<strong>"${completion.mission_text}"</strong>
-					<br><small>📍 ${location}</small>
-					<br><small>🕐 ${timeAgo}</small>
+					<br><small><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:2px"><path d="M12 21C12 21 19 14.5 19 9C19 5.13401 15.866 2 12 2C8.13401 2 5 5.13401 5 9C5 14.5 12 21 12 21Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 9L11 11L15 7" stroke-linecap="round" stroke-linejoin="round"/></svg> ${location}</small>
+					<br><small><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:2px"><circle cx="12" cy="12" r="9"/><path d="M12 6V12L15 15" stroke-linecap="round" stroke-linejoin="round"/></svg> ${timeAgo}</small>
 				</div>
 			`);
 
@@ -136,13 +148,6 @@
 			updateMarkers(L);
 		}
 	}
-
-	function toggleDarkMode() {
-		darkMode = !darkMode;
-		if (browser) {
-			localStorage.setItem('darkMode', String(darkMode));
-		}
-	}
 </script>
 
 <svelte:head>
@@ -150,35 +155,59 @@
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 	<style>
 		.heart-marker {
-			font-size: 24px;
 			text-align: center;
 			line-height: 30px;
-			filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 		}
 		.popup-content {
-			font-size: 14px;
+			font-size: 16px;
 			line-height: 1.5;
 		}
 		.leaflet-popup-content-wrapper {
 			border-radius: 12px;
 		}
+		@keyframes heart-pulse {
+			0%,
+			100% {
+				transform: scale(1);
+			}
+			15% {
+				transform: scale(1.15);
+			}
+			30% {
+				transform: scale(1);
+			}
+			45% {
+				transform: scale(1.1);
+			}
+			60% {
+				transform: scale(1);
+			}
+		}
 	</style>
 </svelte:head>
 
-<div class="min-h-screen flex flex-col transition-colors duration-300 {darkMode ? 'bg-gray-900' : 'bg-linear-to-br from-rose-50 via-amber-50 to-emerald-50'}">
+<div
+	class="flex min-h-screen flex-col transition-colors duration-300 {darkMode
+		? 'bg-gray-900'
+		: 'bg-linear-to-br from-rose-50 via-amber-50 to-emerald-50'}"
+>
 	<!-- Header -->
-	<header class="py-4 px-4 flex items-center justify-between">
+	<header class="flex items-center justify-between px-4 py-4">
 		<div class="flex items-center gap-4">
-			<a href="/" class="text-2xl font-bold bg-linear-to-r from-rose-500 via-amber-500 to-emerald-500 bg-clip-text text-transparent">
+			<a
+				href={resolveRoute('/')}
+				class="bg-linear-to-r from-rose-500 via-amber-500 to-emerald-500 bg-clip-text text-2xl font-bold text-transparent"
+			>
 				KindSpread
 			</a>
-			<span class="{darkMode ? 'text-gray-400' : 'text-gray-600'}">World Map</span>
 		</div>
-		<div class="flex items-center gap-4">
+		<div class="mr-0 flex items-center gap-4 md:mr-[74px]">
 			<select
 				bind:value={hoursFilter}
 				onchange={handleFilterChange}
-				class="px-3 py-2 rounded-lg border cursor-pointer {darkMode ? 'bg-gray-800 border-gray-700 text-gray-200' : 'bg-white border-gray-200 text-gray-800'}"
+				class="cursor-pointer rounded-lg border px-3 py-2 {darkMode
+					? 'border-gray-700 bg-gray-800 text-gray-200'
+					: 'border-gray-200 bg-white text-gray-800'}"
 			>
 				<option value={1}>Last hour</option>
 				<option value={6}>Last 6 hours</option>
@@ -186,64 +215,71 @@
 				<option value={72}>Last 3 days</option>
 				<option value={168}>Last week</option>
 			</select>
-			<button
-				onclick={toggleDarkMode}
-				class="p-2 rounded-full {darkMode ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-700'}"
-			>
-				{#if darkMode}☀️{:else}🌙{/if}
-			</button>
 		</div>
 	</header>
 
 	<!-- Stats bar -->
-	<div class="px-4 pb-4">
-		<div class="rounded-xl p-4 {darkMode ? 'bg-gray-800' : 'bg-white/80'} flex items-center justify-between">
-			<div class="flex items-center gap-2">
-				<span class="text-2xl">💝</span>
-				<div>
-					<p class="font-bold text-lg {darkMode ? 'text-white' : 'text-gray-800'}">
-						{completions.length}
-					</p>
-					<p class="text-sm {darkMode ? 'text-gray-400' : 'text-gray-500'}">
-						acts of kindness
-					</p>
-				</div>
+	<div class="px-4 pb-4 md:pr-[90px]">
+		<div
+			class="rounded-xl p-4 {darkMode
+				? 'bg-gray-800'
+				: 'bg-white/80'} flex items-center justify-between"
+		>
+			<div class="flex flex-row items-center gap-2">
+				<p class="text-xl font-bold {darkMode ? 'text-white' : 'text-gray-800'}">
+					{completions.length}
+				</p>
+				<p class="text-sm {darkMode ? 'text-gray-400' : 'text-gray-500'}">acts of kindness</p>
+				<a
+					href={resolveRoute('/')}
+					class="rounded-full bg-linear-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-lg"
+				>
+					Complete Your Mission
+				</a>
 			</div>
-			<a
-				href="/"
-				class="px-4 py-2 rounded-full bg-linear-to-r from-rose-500 to-amber-500 text-white text-sm font-medium hover:shadow-lg transition-all"
-			>
-				Complete Your Mission
-			</a>
 		</div>
 	</div>
 
 	<!-- Map -->
-	<div class="flex-1 relative">
+	<div class="relative flex-1">
 		{#if loading}
-			<div class="absolute inset-0 flex items-center justify-center {darkMode ? 'bg-gray-900' : 'bg-gray-100'}">
+			<div
+				class="absolute inset-0 flex items-center justify-center {darkMode
+					? 'bg-gray-900'
+					: 'bg-gray-100'}"
+			>
 				<div class="text-center">
-					<div class="text-4xl mb-2">🌍</div>
-					<p class="{darkMode ? 'text-gray-400' : 'text-gray-600'}">Loading kindness around the world...</p>
+					<HandHeart size={48} color="#10b981" class="mx-auto mb-2" />
+					<p class={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+						Loading kindness around the world...
+					</p>
 				</div>
 			</div>
 		{/if}
 		{#if error}
-			<div class="absolute inset-0 flex items-center justify-center {darkMode ? 'bg-gray-900' : 'bg-gray-100'}">
+			<div
+				class="absolute inset-0 flex items-center justify-center {darkMode
+					? 'bg-gray-900'
+					: 'bg-gray-100'}"
+			>
 				<div class="text-center text-red-500">
 					<p>{error}</p>
 					<button onclick={loadCompletions} class="mt-2 underline">Retry</button>
 				</div>
 			</div>
 		{/if}
-		<div bind:this={mapContainer} class="w-full h-full min-h-125"></div>
+		<div bind:this={mapContainer} class="h-full min-h-125 w-full"></div>
 	</div>
 
 	<!-- Footer -->
 	<footer class="py-4 text-center {darkMode ? 'text-gray-600' : 'text-gray-400'}">
 		<p class="text-xs">
-			Built with ☕ Swedish snus and passion for Svelte by <a href="https://m7n.dev" target="_blank" rel="noopener noreferrer" class="underline hover:text-rose-500 transition-colors">m7n.dev</a>
+			Built with ☕ Swedish snus and passion for Svelte by <a
+				href="https://m7n.dev"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="underline transition-colors hover:text-rose-500">m7n.dev</a
+			>
 		</p>
 	</footer>
 </div>
-

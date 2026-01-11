@@ -160,4 +160,3 @@ export async function isSubscribedToPush(): Promise<boolean> {
 		return false;
 	}
 }
-

@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@jis3r/icons':
+        specifier: ^1.26.0
+        version: 1.26.0(svelte@5.46.1)
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
@@ -619,6 +622,11 @@ packages:
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [x64]
     os: [win32]
+
+  '@jis3r/icons@1.26.0':
+    resolution: {integrity: sha512-KoOycnR8jFETBHL+fc70qNir/3pdoBDParU6FcJCZq8FtLYwLkQI2m2V7Jqw/oLSOMnxAL/8I+w8qxvvng2jog==}
+    peerDependencies:
+      svelte: ^5.0.0
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -2206,6 +2214,10 @@ snapshots:
 
   '@img/sharp-win32-x64@0.33.5':
     optional: true
+
+  '@jis3r/icons@1.26.0(svelte@5.46.1)':
+    dependencies:
+      svelte: 5.46.1
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:

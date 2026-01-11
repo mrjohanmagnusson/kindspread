@@ -44,7 +44,8 @@ export async function POST({ platform, url }: RequestEvent) {
 		data: { url: '/' }
 	});
 
-	const results_status: { endpoint: string; success: boolean; status?: number; error?: string }[] = [];
+	const results_status: { endpoint: string; success: boolean; status?: number; error?: string }[] =
+		[];
 
 	for (const subscription of results) {
 		try {

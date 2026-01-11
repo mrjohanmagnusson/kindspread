@@ -10,4 +10,3 @@ export async function GET({ platform }: RequestEvent) {
 
 	return json({ publicKey });
 }
-

@@ -2,10 +2,7 @@
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "kindspread",
 	"compatibility_date": "2026-01-10",
-	"compatibility_flags": [
-		"nodejs_als",
-		"nodejs_compat"
-	],
+	"compatibility_flags": ["nodejs_als", "nodejs_compat"],
 	"main": ".svelte-kit/cloudflare/_worker.js",
 	"assets": {
 		"binding": "ASSETS",
@@ -23,8 +20,6 @@
 	],
 	// Cron trigger for daily push notifications (8:00 AM UTC)
 	"triggers": {
-		"crons": [
-			"0 8 * * *"
-		]
+		"crons": ["0 8 * * *"]
 	}
 }

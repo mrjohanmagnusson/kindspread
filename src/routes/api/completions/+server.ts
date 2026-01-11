@@ -63,11 +63,19 @@ export async function POST({ request, platform }: RequestEvent) {
 
 		// Validate required fields
 		if (!body.mission_text || body.latitude === undefined || body.longitude === undefined) {
-			return json({ error: 'Missing required fields: mission_text, latitude, longitude' }, { status: 400 });
+			return json(
+				{ error: 'Missing required fields: mission_text, latitude, longitude' },
+				{ status: 400 }
+			);
 		}
 
 		// Validate coordinates
-		if (body.latitude < -90 || body.latitude > 90 || body.longitude < -180 || body.longitude > 180) {
+		if (
+			body.latitude < -90 ||
+			body.latitude > 90 ||
+			body.longitude < -180 ||
+			body.longitude > 180
+		) {
 			return json({ error: 'Invalid coordinates' }, { status: 400 });
 		}
 
@@ -83,7 +91,10 @@ export async function POST({ request, platform }: RequestEvent) {
 				.first();
 
 			if (existing) {
-				return json({ error: 'Already completed a mission today', duplicate: true }, { status: 409 });
+				return json(
+					{ error: 'Already completed a mission today', duplicate: true },
+					{ status: 409 }
+				);
 			}
 		}
 
@@ -113,4 +124,3 @@ export async function POST({ request, platform }: RequestEvent) {
 		return json({ error: 'Failed to save completion' }, { status: 500 });
 	}
 }
-

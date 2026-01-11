@@ -3,6 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
 	import { registerServiceWorker } from '$lib/push';
+	import FloatingNav from '$lib/components/FloatingNav.svelte';
 
 	let { children } = $props();
 
@@ -21,4 +22,6 @@
 	<meta name="apple-mobile-web-app-title" content="KindSpread" />
 	<link rel="apple-touch-icon" href="/icons/icon-192.svg" />
 </svelte:head>
+
+<FloatingNav />
 {@render children()}

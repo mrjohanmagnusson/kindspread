@@ -1,31 +1,10 @@
 import type { Handle } from '@sveltejs/kit';
 import { createVapidAuthHeader, encryptPayload } from '$lib/server/web-push';
+import { getMissionForDay } from '$lib/missions';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
-
-// Missions for daily notifications
-const missions = [
-	'Tell someone you know that you are proud of them',
-	'Tell someone you know why you are thankful for them',
-	'Send a kind message to someone you have not talked to in a while',
-	'Give a genuine compliment to a stranger',
-	'Write a thank you note to someone who helped you recently',
-	'Share something positive on social media',
-	'Offer to help a colleague or friend with something'
-];
-
-/**
- * Get today's mission based on the date
- */
-function getTodaysMission(): string {
-	const today = new Date();
-	const dayOfYear = Math.floor(
-		(today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24)
-	);
-	return missions[dayOfYear % missions.length];
-}
 
 /**
  * Handle scheduled cron trigger for daily push notifications
@@ -40,9 +19,9 @@ export async function handleScheduled(event: ScheduledEvent, env: Env): Promise<
 	}
 
 	// Get today's mission
-	const mission = getTodaysMission();
+	const { mission } = getMissionForDay();
 	const payload = JSON.stringify({
-		title: "🌟 Today's Kindness Mission",
+		title: "Today's Kindness Mission",
 		body: mission,
 		icon: '/icons/icon-192.svg',
 		badge: '/icons/icon-192.svg',
