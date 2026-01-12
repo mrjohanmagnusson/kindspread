@@ -5,6 +5,19 @@
 	import { Heart, Infinity as InfinityIcon, Sparkles, MapPinCheck, RefreshCcw } from '@jis3r/icons';
 	import EarthIcon from '$lib/components/icons/EarthIcon.svelte';
 
+	// Props from server load function
+	interface Props {
+		data: {
+			estimatedLocation: {
+				city: string | null;
+				country: string | null;
+				latitude: number | null;
+				longitude: number | null;
+			};
+		};
+	}
+	let { data }: Props = $props();
+
 	// Get today's mission based on the date
 	const today = new Date();
 	const { index: initialIndex } = getMissionForDay(today);
@@ -106,6 +119,17 @@
 				if (coords) {
 					const geo = await reverseGeocode(coords.latitude, coords.longitude);
 					userLocation = { ...coords, ...geo };
+				} else if (
+					data.estimatedLocation.latitude !== null &&
+					data.estimatedLocation.longitude !== null
+				) {
+					// Fallback to Cloudflare's IP-based geolocation
+					userLocation = {
+						latitude: data.estimatedLocation.latitude,
+						longitude: data.estimatedLocation.longitude,
+						city: data.estimatedLocation.city || undefined,
+						country: data.estimatedLocation.country || undefined
+					};
 				}
 			}
 
@@ -124,9 +148,9 @@
 					})
 				});
 
-				const data = (await response.json()) as { error?: string; duplicate?: boolean };
-				if (!response.ok && !data.duplicate) {
-					console.error('Failed to save completion:', data.error);
+				const responseData = (await response.json()) as { error?: string; duplicate?: boolean };
+				if (!response.ok && !responseData.duplicate) {
+					console.error('Failed to save completion:', responseData.error);
 				}
 			}
 
@@ -136,7 +160,7 @@
 			}
 		} catch (error) {
 			console.error('Error completing mission:', error);
-			completionError = 'Failed to save. Your kindness still counts! 💝';
+			completionError = 'Failed to save, but your kindness still counts!';
 			missionCompleted = true; // Still mark as complete locally
 		} finally {
 			isCompletingMission = false;
@@ -188,12 +212,16 @@
 	<!-- Header -->
 	<header class="py-8 text-center">
 		<h1
-			class="inline-block bg-linear-to-r from-rose-500 via-amber-500 to-emerald-500 bg-clip-text text-5xl font-bold text-transparent"
+			class="inline-block bg-linear-to-r from-rose-500 via-amber-500 to-emerald-500 bg-clip-text text-6xl font-bold text-transparent md:text-8xl"
 		>
 			KindSpread
 		</h1>
-		<p class="m-auto mt-2 max-w-[32ch] px-4 text-lg {darkMode ? 'text-gray-400' : 'text-gray-600'}">
-			Help spreading kindness around the globe - it is free <Heart size={20} color="#f43f5e" />
+		<p
+			class="m-auto mt-2 max-w-[32ch] px-4 text-lg md:text-2xl {darkMode
+				? 'text-gray-400'
+				: 'text-gray-600'}"
+		>
+			Help spreading kindness around the globe - it's free <Heart size={20} color="#f43f5e" />
 		</p>
 	</header>
 
@@ -206,7 +234,7 @@
 
 		<!-- Mission Card -->
 		<div
-			class="rounded-3xl border p-4 md:p-8 shadow-xl transition-colors duration-300 {darkMode
+			class="rounded-3xl border p-4 shadow-xl transition-colors duration-300 md:p-8 {darkMode
 				? 'border-gray-700 bg-gray-800'
 				: 'border-gray-100 bg-white'}"
 		>
@@ -221,7 +249,7 @@
 			</div>
 
 			<h2
-				class="mb-4 text-center text-2xl leading-relaxed font-semibold {darkMode
+				class="mb-4 text-center text-2xl leading-relaxed font-semibold text-balance {darkMode
 					? 'text-gray-100'
 					: 'text-gray-800'}"
 			>
@@ -293,7 +321,7 @@
 						</span>
 					</button>
 					<p
-						class="mt-3 inline-flex items-center gap-1 text-xs {darkMode
+						class="mt-4 inline-flex items-center gap-1 text-xs {darkMode
 							? 'text-gray-500'
 							: 'text-gray-400'}"
 					>
@@ -306,33 +334,33 @@
 		<!-- Stats/Info Section -->
 		<div class="mt-8 grid grid-cols-3 gap-4">
 			<div
-				class="rounded-2xl border p-2 md:p-6 text-center backdrop-blur transition-colors duration-300 {darkMode
+				class="rounded-2xl border p-2 text-center backdrop-blur transition-colors duration-300 md:p-6 {darkMode
 					? 'border-gray-700 bg-gray-800/60'
 					: 'border-white/80 bg-white/60'}"
 			>
 				<InfinityIcon size={40} color="#f43f5e" class="mx-auto" />
-				<p class="mt-1 text-sm {darkMode ? 'text-gray-400' : 'text-gray-600'}">
+				<p class="mt-1 text-sm text-balance {darkMode ? 'text-gray-400' : 'text-gray-600'}">
 					Acts of Kindness Possible
 				</p>
 			</div>
 			<div
-				class="rounded-2xl border p-2 md:p-6 text-center backdrop-blur transition-colors duration-300 {darkMode
+				class="rounded-2xl border p-2 text-center backdrop-blur transition-colors duration-300 md:p-6 {darkMode
 					? 'border-gray-700 bg-gray-800/60'
 					: 'border-white/80 bg-white/60'}"
 			>
 				<p class="text-3xl font-bold text-emerald-500">$0</p>
-				<p class="mt-1 text-sm {darkMode ? 'text-gray-400' : 'text-gray-600'}">
+				<p class="mt-1 text-sm text-balance {darkMode ? 'text-gray-400' : 'text-gray-600'}">
 					The cost of beeing kind to someone.
 				</p>
 			</div>
 			<a
 				href={resolveRoute('/map')}
-				class="rounded-2xl border p-2 md:p-6 text-center backdrop-blur transition-colors duration-300 hover:scale-105 {darkMode
+				class="rounded-2xl border p-2 text-center backdrop-blur transition-colors duration-300 hover:scale-105 md:p-6 {darkMode
 					? 'border-gray-700 bg-gray-800/60 hover:bg-gray-800'
 					: 'border-white/80 bg-white/60 hover:bg-white'}"
 			>
 				<EarthIcon class="mx-auto h-10 w-10 text-emerald-500" />
-				<p class="mt-1 text-sm {darkMode ? 'text-gray-400' : 'text-gray-600'}">
+				<p class="mt-1 text-sm text-balance {darkMode ? 'text-gray-400' : 'text-gray-600'}">
 					Kindness spread around the world
 				</p>
 			</a>
@@ -345,7 +373,7 @@
 	</main>
 
 	<!-- Site Footer -->
-	<footer class="py-6 text-center {darkMode ? 'text-gray-600' : 'text-gray-400'}">
+	<footer class="py-6 pb-[92px] text-center md:pb-6 {darkMode ? 'text-gray-600' : 'text-gray-400'}">
 		<p class="text-xs">
 			Built with coffey, snus and passion for Svelte by <a
 				href="https://m7n.dev"

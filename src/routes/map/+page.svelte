@@ -19,7 +19,7 @@
 	let error = $state<string | null>(null);
 	let mapContainer: HTMLDivElement;
 	let map: L.Map | null = null;
-	let hoursFilter = $state(24);
+	let hoursFilter = $state(168);
 
 	// Dark mode - default to dark mode
 	let darkMode = $state(true);

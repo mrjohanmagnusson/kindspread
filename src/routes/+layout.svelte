@@ -1,6 +1,5 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
 	import { registerServiceWorker } from '$lib/push';
 	import FloatingNav from '$lib/components/FloatingNav.svelte';
@@ -14,7 +13,7 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 	<link rel="manifest" href="/manifest.json" />
 	<meta name="theme-color" content="#f43f5e" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
