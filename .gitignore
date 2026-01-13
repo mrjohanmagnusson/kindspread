@@ -26,3 +26,4 @@ vite.config.ts.timestamp-*
 /worker-configuration.d.ts
 DBINFO.md
 .dev.vars
+/.github/agents/Svelte.agent.md

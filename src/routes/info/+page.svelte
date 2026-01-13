@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { initDarkMode, getDarkMode } from '$lib/stores/dark-mode';
 
 	let darkMode = $state(true);
 
 	$effect(() => {
 		if (browser) {
-			const stored = localStorage.getItem('darkMode');
-			if (stored !== null) {
-				darkMode = stored === 'true';
-			}
+			initDarkMode();
+			darkMode = getDarkMode();
 
 			const handleDarkModeChange = (e: CustomEvent<boolean>) => {
 				darkMode = e.detail;
@@ -87,8 +86,8 @@
 						? 'text-amber-400 hover:text-amber-300'
 						: 'text-amber-600 hover:text-amber-500'}"
 				>
-					Buy Me a Coffee
-				</a>. Every cup helps keep the map glowing. ☕
+					buy me a coffee
+				</a>. Every cup helps keep the map glowing.
 			</p>
 		</section>
 	</div>

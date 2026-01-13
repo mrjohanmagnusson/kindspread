@@ -36,7 +36,7 @@ export async function POST({ platform, url }: RequestEvent) {
 	}
 
 	const payload = JSON.stringify({
-		title: '🧪 Test Notification',
+		title: 'Test Notification',
 		body: 'This is a test push notification from KindSpread!',
 		icon: '/icons/icon-192.svg',
 		badge: '/icons/icon-192.svg',

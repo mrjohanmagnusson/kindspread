@@ -3,6 +3,8 @@
 	import { browser } from '$app/environment';
 	import { resolveRoute } from '$app/paths';
 	import { HandHeart } from '@jis3r/icons';
+	import { initDarkMode, getDarkMode } from '$lib/stores/dark-mode';
+	import { isMissionCompletedToday } from '$lib/stores/mission-state';
 
 	interface Completion {
 		id: number;
@@ -21,7 +23,7 @@
 	let map: L.Map | null = null;
 	let hoursFilter = $state(168);
 
-	// Dark mode - default to dark mode
+	// Dark mode - use shared store
 	let darkMode = $state(true);
 
 	// Check if today's mission is completed
@@ -29,18 +31,11 @@
 
 	onMount(async () => {
 		if (browser) {
-			const stored = localStorage.getItem('darkMode');
-			if (stored !== null) {
-				darkMode = stored === 'true';
-			}
-			// If not stored, keep default (true = dark mode)
+			initDarkMode();
+			darkMode = getDarkMode();
 
 			// Check if mission was already completed today
-			const lastCompleted = localStorage.getItem('lastCompletedDate');
-			const todayStr = new Date().toISOString().split('T')[0];
-			if (lastCompleted === todayStr) {
-				missionCompleted = true;
-			}
+			missionCompleted = isMissionCompletedToday();
 
 			// Listen for dark mode changes from FloatingNav
 			const handleDarkModeChange = (e: CustomEvent<boolean>) => {
@@ -286,7 +281,7 @@
 	<!-- Footer -->
 	<footer class="py-4 text-center {darkMode ? 'text-gray-600' : 'text-gray-400'}">
 		<p class="text-xs">
-			Built with ☕ Swedish snus and passion for Svelte by <a
+			Built with coffee, Swedish snus and passion for Svelte by <a
 				href="https://m7n.dev"
 				target="_blank"
 				rel="noopener noreferrer"

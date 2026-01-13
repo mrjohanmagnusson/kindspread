@@ -4,6 +4,12 @@
 	import { missions, getMissionForDay, getRandomMission } from '$lib/missions';
 	import { Heart, Infinity as InfinityIcon, Sparkles, MapPinCheck, RefreshCcw } from '@jis3r/icons';
 	import EarthIcon from '$lib/components/icons/EarthIcon.svelte';
+	import { initDarkMode, getDarkMode } from '$lib/stores/dark-mode';
+	import {
+		isMissionCompletedToday,
+		markMissionCompleted,
+		getAnonymousId
+	} from '$lib/stores/mission-state';
 
 	// Props from server load function
 	interface Props {
@@ -49,16 +55,6 @@
 		country?: string;
 	} | null>(null);
 
-	// Generate anonymous ID for duplicate prevention (stored in localStorage)
-	function getAnonymousId(): string {
-		if (!browser) return '';
-		let id = localStorage.getItem('kindspread_anon_id');
-		if (!id) {
-			id = crypto.randomUUID();
-			localStorage.setItem('kindspread_anon_id', id);
-		}
-		return id;
-	}
 
 	// Request user's location
 	async function requestLocation(): Promise<{ latitude: number; longitude: number } | null> {
@@ -155,9 +151,7 @@
 			}
 
 			missionCompleted = true;
-			if (browser) {
-				localStorage.setItem('lastCompletedDate', today.toISOString().split('T')[0]);
-			}
+			markMissionCompleted();
 		} catch (error) {
 			console.error('Error completing mission:', error);
 			completionError = 'Failed to save, but your kindness still counts!';
@@ -170,25 +164,18 @@
 	// Check if mission was already completed today
 	$effect(() => {
 		if (browser) {
-			const lastCompleted = localStorage.getItem('lastCompletedDate');
-			const todayStr = today.toISOString().split('T')[0];
-			if (lastCompleted === todayStr) {
-				missionCompleted = true;
-			}
+			missionCompleted = isMissionCompletedToday();
 		}
 	});
 
 	// Dark mode support - default to dark mode
 	let darkMode = $state(true);
 
-	// Initialize dark mode from localStorage (default to dark if not set)
+	// Initialize dark mode from shared store
 	$effect(() => {
 		if (browser) {
-			const stored = localStorage.getItem('darkMode');
-			if (stored !== null) {
-				darkMode = stored === 'true';
-			}
-			// If not stored, keep default (true = dark mode)
+			initDarkMode();
+			darkMode = getDarkMode();
 
 			// Listen for dark mode changes from FloatingNav
 			const handleDarkModeChange = (e: CustomEvent<boolean>) => {

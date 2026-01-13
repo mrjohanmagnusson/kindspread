@@ -10,10 +10,15 @@
 		unsubscribeFromPush,
 		isSubscribedToPush
 	} from '$lib/push';
+	import {
+		initDarkMode,
+		getDarkMode,
+		toggleDarkMode as toggleDarkModeStore
+	} from '$lib/stores/dark-mode';
 	import { House, BellRing, BellOff, BadgeQuestionMark } from '@jis3r/icons';
 	import EarthIcon from '$lib/components/icons/EarthIcon.svelte';
 
-	// Dark mode state - default to dark mode
+	// Dark mode state - use shared store
 	let darkMode = $state(true);
 
 	// Push notification state
@@ -24,31 +29,34 @@
 
 	$effect(() => {
 		if (browser) {
-			const stored = localStorage.getItem('darkMode');
-			if (stored !== null) {
-				darkMode = stored === 'true';
-			}
-			// If not stored, keep default (true = dark mode)
+			initDarkMode();
+			darkMode = getDarkMode();
+
+			// Listen for dark mode changes
+			const handleDarkModeChange = (e: CustomEvent<boolean>) => {
+				darkMode = e.detail;
+			};
+			window.addEventListener('darkModeChange', handleDarkModeChange as EventListener);
+			return () =>
+				window.removeEventListener('darkModeChange', handleDarkModeChange as EventListener);
 		}
 	});
 
-	onMount(async () => {
+	onMount(() => {
 		if (browser) {
 			pushSupported = isPushSupported();
 			notificationPermission = getNotificationPermission();
 			if (pushSupported && notificationPermission === 'granted') {
-				isSubscribed = await isSubscribedToPush();
+				isSubscribedToPush().then((subscribed) => {
+					isSubscribed = subscribed;
+				});
 			}
 		}
 	});
 
 	function toggleDarkMode() {
-		darkMode = !darkMode;
-		if (browser) {
-			localStorage.setItem('darkMode', String(darkMode));
-			// Dispatch event so other components can react
-			window.dispatchEvent(new CustomEvent('darkModeChange', { detail: darkMode }));
-		}
+		toggleDarkModeStore();
+		darkMode = getDarkMode();
 	}
 
 	async function toggleNotifications() {
