@@ -15,7 +15,8 @@
 		"lint": "prettier --check . && eslint .",
 		"types": "wrangler types",
 		"db:local": "wrangler d1 execute kindspread-db --local --file=./schema.sql",
-		"db:remote": "wrangler d1 execute kindspread-db --remote --file=./schema.sql"
+		"db:remote": "wrangler d1 execute kindspread-db --remote --file=./schema.sql",
+		"og:generate": "tsx scripts/generate-og-image.ts"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",
@@ -34,6 +35,7 @@
 		"prettier": "^3.7.4",
 		"prettier-plugin-svelte": "^3.4.0",
 		"prettier-plugin-tailwindcss": "^0.7.2",
+		"sharp": "^0.34.5",
 		"svelte": "^5.45.6",
 		"svelte-check": "^4.3.4",
 		"tailwindcss": "^4.1.17",

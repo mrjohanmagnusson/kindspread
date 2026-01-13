@@ -1,0 +1,56 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f43f5e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+
+  <!-- Decorative elements -->
+  <circle cx="100" cy="100" r="60" fill="#ffffff" opacity="0.1"/>
+  <circle cx="1100" cy="530" r="80" fill="#ffffff" opacity="0.1"/>
+  <circle cx="950" cy="100" r="40" fill="#ffffff" opacity="0.15"/>
+
+  <!-- Heart icon (simplified) -->
+  <g transform="translate(600, 180)">
+    <path d="M0,-40 C-15,-55 -40,-55 -50,-40 C-60,-25 -60,-10 -50,5 L0,55 L50,5 C60,-10 60,-25 50,-40 C40,-55 15,-55 0,-40 Z"
+          fill="#ffffff" filter="url(#glow)"/>
+  </g>
+
+  <!-- Main title -->
+  <text x="600" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="84" font-weight="bold"
+        fill="#ffffff" text-anchor="middle" letter-spacing="-1">
+    KindSpread
+  </text>
+
+  <!-- Subtitle -->
+  <text x="600" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="36"
+        fill="#ffffff" text-anchor="middle" opacity="0.95">
+    Spread Kindness Daily
+  </text>
+
+  <!-- Tagline -->
+  <text x="600" y="450" font-family="system-ui, -apple-system, sans-serif" font-size="28"
+        fill="#ffffff" text-anchor="middle" opacity="0.9">
+    Join the global kindness movement
+  </text>
+
+  <!-- URL -->
+  <text x="600" y="550" font-family="system-ui, -apple-system, sans-serif" font-size="24"
+        fill="#ffffff" text-anchor="middle" opacity="0.8">
+    kindspread.online
+  </text>
+</svg>
+
