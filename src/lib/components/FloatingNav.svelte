@@ -10,7 +10,7 @@
 		unsubscribeFromPush,
 		isSubscribedToPush
 	} from '$lib/push';
-	import { House, BellRing, BellOff } from '@jis3r/icons';
+	import { House, BellRing, BellOff, BadgeQuestionMark } from '@jis3r/icons';
 	import EarthIcon from '$lib/components/icons/EarthIcon.svelte';
 
 	// Dark mode state - default to dark mode
@@ -70,7 +70,7 @@
 	}
 
 	// Get current path for active state
-	const currentPath = $derived($page.url.pathname);
+	const currentPath = $derived($page.url.pathname as string);
 </script>
 
 <nav
@@ -81,7 +81,7 @@
 	<!-- Home -->
 	<a
 		href={resolveRoute('/')}
-		class="rounded-xl p-2.5 transition-all duration-200 {currentPath === '/'
+		class="rounded-xl p-2.5 h-10 transition-all duration-200 {currentPath === '/'
 			? darkMode
 				? 'bg-gray-700 text-rose-400'
 				: 'bg-rose-100 text-rose-600'
@@ -96,7 +96,7 @@
 	<!-- World Map -->
 	<a
 		href={resolveRoute('/map')}
-		class="rounded-xl p-2.5 transition-all duration-200 {currentPath === '/map'
+		class="rounded-xl p-2.5 h-10 transition-all duration-200 {currentPath === '/map'
 			? darkMode
 				? 'bg-gray-700 text-emerald-400'
 				: 'bg-emerald-100 text-emerald-600'
@@ -106,6 +106,21 @@
 		title="World Map"
 	>
 		<EarthIcon class="h-5 w-5" />
+	</a>
+
+	<!-- Info -->
+	<a
+		href="/info"
+		class="rounded-xl p-2.5 h-10 transition-all duration-200 {currentPath.startsWith('/info')
+			? darkMode
+				? 'bg-gray-700 text-sky-400'
+				: 'bg-sky-100 text-sky-600'
+			: darkMode
+				? 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+				: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}"
+		title="Info"
+	>
+		<BadgeQuestionMark size={20} />
 	</a>
 
 	<!-- Separator -->
@@ -118,7 +133,7 @@
 		<button
 			onclick={toggleNotifications}
 			disabled={isToggling || notificationPermission === 'denied'}
-			class="cursor-pointer rounded-xl p-2.5 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 {isSubscribed
+			class="cursor-pointer h-10 rounded-xl p-2.5 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 {isSubscribed
 				? darkMode
 					? 'text-amber-400 hover:bg-gray-700'
 					: 'text-amber-500 hover:bg-gray-100'
@@ -156,7 +171,7 @@
 	<!-- Dark Mode Toggle -->
 	<button
 		onclick={toggleDarkMode}
-		class="cursor-pointer rounded-xl p-2.5 transition-all duration-200 {darkMode
+		class="cursor-pointer h-10 rounded-xl p-2.5 transition-all duration-200 {darkMode
 			? 'text-yellow-400 hover:bg-gray-700'
 			: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}"
 		title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}

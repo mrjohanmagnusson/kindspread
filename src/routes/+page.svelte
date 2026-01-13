@@ -227,6 +227,28 @@
 
 	<!-- Main Content -->
 	<main class="mx-auto max-w-2xl px-4 py-8">
+		<!-- How it works -->
+		<div class="mb-10 space-y-4 text-center">
+			<div class="flex items-start gap-3 text-left">
+				<span class="text-3xl {darkMode ? 'text-gray-300' : 'text-gray-700'}">1.</span>
+				<p class="{darkMode ? 'text-gray-300' : 'text-gray-700'}">
+					<span class="font-semibold">Get your mission</span><br /><span class="text-sm text-gray-500">Every morning, a new act of kindness is revealed.</span>
+				</p>
+			</div>
+			<div class="flex items-start gap-3 text-left">
+				<span class="text-3xl {darkMode ? 'text-gray-300' : 'text-gray-700'}">2.</span>
+				<p class="{darkMode ? 'text-gray-300' : 'text-gray-700'}">
+					<span class="font-semibold">Spread the light</span><br /><span class="text-sm text-gray-500">Complete the task in your local community.</span>
+				</p>
+			</div>
+			<div class="flex items-start gap-3 text-left">
+				<span class="text-3xl {darkMode ? 'text-gray-300' : 'text-gray-700'}">3.</span>
+				<p class="{darkMode ? 'text-gray-300' : 'text-gray-700'}">
+					<span class="font-semibold">Map the joy</span><br /><span class="text-sm text-gray-500">Mark it as done and see your contribution appear in the global kindness map.</span>
+				</p>
+			</div>
+		</div>
+
 		<!-- Date -->
 		<p class="mb-6 text-center text-sm {darkMode ? 'text-gray-500' : 'text-gray-500'}">
 			{formattedDate}
@@ -240,9 +262,9 @@
 		>
 			<div class="mb-6 text-center">
 				<span
-					class="inline-block rounded-full px-4 py-1 text-sm font-medium {darkMode
-						? 'bg-amber-900/50 text-amber-400'
-						: 'bg-amber-100 text-amber-700'}"
+					class="inline-block px-4 py-2 rounded-full text-sm font-medium border-2 {darkMode
+						? 'border-amber-400 text-amber-400'
+						: 'border-amber-700 text-amber-700'}"
 				>
 					Today's Mission
 				</span>

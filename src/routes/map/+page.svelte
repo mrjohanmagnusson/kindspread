@@ -24,6 +24,9 @@
 	// Dark mode - default to dark mode
 	let darkMode = $state(true);
 
+	// Check if today's mission is completed
+	let missionCompleted = $state(false);
+
 	onMount(async () => {
 		if (browser) {
 			const stored = localStorage.getItem('darkMode');
@@ -31,6 +34,13 @@
 				darkMode = stored === 'true';
 			}
 			// If not stored, keep default (true = dark mode)
+
+			// Check if mission was already completed today
+			const lastCompleted = localStorage.getItem('lastCompletedDate');
+			const todayStr = new Date().toISOString().split('T')[0];
+			if (lastCompleted === todayStr) {
+				missionCompleted = true;
+			}
 
 			// Listen for dark mode changes from FloatingNav
 			const handleDarkModeChange = (e: CustomEvent<boolean>) => {
@@ -230,12 +240,14 @@
 					{completions.length}
 				</p>
 				<p class="text-sm {darkMode ? 'text-gray-400' : 'text-gray-500'}">acts of kindness</p>
-				<a
-					href={resolveRoute('/')}
-					class="rounded-full bg-linear-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-lg"
-				>
-					Complete Your Mission
-				</a>
+				{#if !missionCompleted}
+					<a
+						href={resolveRoute('/')}
+						class="rounded-full bg-linear-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-lg"
+					>
+						Complete Your Mission
+					</a>
+				{/if}
 			</div>
 		</div>
 	</div>
