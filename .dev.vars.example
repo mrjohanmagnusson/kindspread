@@ -1,0 +1,8 @@
+
+# Local development secrets for wrangler dev
+# These keys were generated for development - generate new ones for production!
+
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=
+
