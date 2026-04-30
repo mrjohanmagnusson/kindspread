@@ -90,8 +90,7 @@ async function createVapidAuthHeader(endpoint, subject, publicKey, privateKey) {
   var jwt = await createVapidJwt(audience, subject, publicKey, privateKey, expiration);
 
   return {
-    Authorization: "vapid t=" + jwt + ", k=" + publicKey,
-    "Crypto-Key": "p256ecdsa=" + publicKey
+    Authorization: "vapid t=" + jwt + ", k=" + publicKey
   };
 }
 
@@ -206,7 +205,6 @@ async function scheduled(event, env, ctx) {
           method: "POST",
           headers: {
             Authorization: vapidHeaders.Authorization,
-            "Crypto-Key": vapidHeaders["Crypto-Key"],
             "Content-Type": "application/octet-stream",
             "Content-Encoding": "aes128gcm",
             "Content-Length": encrypted.byteLength.toString(),

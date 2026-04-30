@@ -96,7 +96,7 @@ export async function createVapidAuthHeader(
 	subject: string,
 	publicKey: string,
 	privateKey: string
-): Promise<{ Authorization: string; 'Crypto-Key': string }> {
+): Promise<{ Authorization: string }> {
 	const url = new URL(endpoint);
 	const audience = `${url.protocol}//${url.host}`;
 	const expiration = Math.floor(Date.now() / 1000) + 12 * 60 * 60; // 12 hours
@@ -104,8 +104,7 @@ export async function createVapidAuthHeader(
 	const jwt = await createVapidJwt(audience, subject, publicKey, privateKey, expiration);
 
 	return {
-		Authorization: `vapid t=${jwt}, k=${publicKey}`,
-		'Crypto-Key': `p256ecdsa=${publicKey}`
+		Authorization: `vapid t=${jwt}, k=${publicKey}`
 	};
 }
 
