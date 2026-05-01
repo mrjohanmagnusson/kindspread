@@ -15,6 +15,7 @@
 		getDarkMode,
 		toggleDarkMode as toggleDarkModeStore
 	} from '$lib/stores/dark-mode';
+	import { getLocale, setLocale, t, type Locale } from '$lib/i18n';
 	import { House, BellRing, BellOff, BadgeQuestionMark } from '@jis3r/icons';
 	import EarthIcon from '$lib/components/icons/EarthIcon.svelte';
 
@@ -26,6 +27,10 @@
 	let notificationPermission = $state<NotificationPermission | 'unsupported'>('default');
 	let isSubscribed = $state(false);
 	let isToggling = $state(false);
+
+	// Locale state
+	let locale = $state<Locale>(getLocale());
+	let i18n = $state(t());
 
 	$effect(() => {
 		if (browser) {
@@ -59,6 +64,13 @@
 		darkMode = getDarkMode();
 	}
 
+	function toggleLocale() {
+		const newLocale: Locale = locale === 'en' ? 'sv' : 'en';
+		setLocale(newLocale);
+		locale = newLocale;
+		i18n = t();
+	}
+
 	async function toggleNotifications() {
 		if (!pushSupported || isToggling) return;
 
@@ -89,7 +101,7 @@
 	<!-- Home -->
 	<a
 		href={resolveRoute('/')}
-		class="rounded-xl p-2.5 h-10 transition-all duration-200 {currentPath === '/'
+		class="h-10 rounded-xl p-2.5 transition-all duration-200 {currentPath === '/'
 			? darkMode
 				? 'bg-gray-700 text-rose-400'
 				: 'bg-rose-100 text-rose-600'
@@ -104,7 +116,7 @@
 	<!-- World Map -->
 	<a
 		href={resolveRoute('/map')}
-		class="rounded-xl p-2.5 h-10 transition-all duration-200 {currentPath === '/map'
+		class="h-10 rounded-xl p-2.5 transition-all duration-200 {currentPath === '/map'
 			? darkMode
 				? 'bg-gray-700 text-emerald-400'
 				: 'bg-emerald-100 text-emerald-600'
@@ -119,7 +131,7 @@
 	<!-- Info -->
 	<a
 		href="/info"
-		class="rounded-xl p-2.5 h-10 transition-all duration-200 {currentPath.startsWith('/info')
+		class="h-10 rounded-xl p-2.5 transition-all duration-200 {currentPath.startsWith('/info')
 			? darkMode
 				? 'bg-gray-700 text-sky-400'
 				: 'bg-sky-100 text-sky-600'
@@ -141,7 +153,7 @@
 		<button
 			onclick={toggleNotifications}
 			disabled={isToggling || notificationPermission === 'denied'}
-			class="cursor-pointer h-10 rounded-xl p-2.5 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 {isSubscribed
+			class="h-10 cursor-pointer rounded-xl p-2.5 transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 {isSubscribed
 				? darkMode
 					? 'text-amber-400 hover:bg-gray-700'
 					: 'text-amber-500 hover:bg-gray-100'
@@ -179,10 +191,10 @@
 	<!-- Dark Mode Toggle -->
 	<button
 		onclick={toggleDarkMode}
-		class="cursor-pointer h-10 rounded-xl p-2.5 transition-all duration-200 {darkMode
+		class="h-10 cursor-pointer rounded-xl p-2.5 transition-all duration-200 {darkMode
 			? 'text-yellow-400 hover:bg-gray-700'
 			: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}"
-		title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+		title={darkMode ? i18n.navLightMode : i18n.navDarkMode}
 	>
 		{#if darkMode}
 			<!-- Sun icon -->
@@ -205,5 +217,16 @@
 				></path>
 			</svg>
 		{/if}
+	</button>
+
+	<!-- Language Toggle -->
+	<button
+		onclick={toggleLocale}
+		class="h-10 cursor-pointer rounded-xl p-2.5 text-xs font-bold transition-all duration-200 {darkMode
+			? 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+			: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}"
+		title={locale === 'en' ? 'Byt till svenska' : 'Switch to English'}
+	>
+		{locale === 'en' ? 'SV' : 'EN'}
 	</button>
 </nav>

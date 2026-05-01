@@ -235,8 +235,21 @@ async function scheduled(event, env, ctx) {
 // === INJECTED SCHEDULED HANDLER END ===
 `;
 
-// Append the scheduled handler
-workerCode = workerCode + '\n' + scheduledHandler + '\nexport { scheduled };\n';
+// Find the default export variable name and inject scheduled as a method on it
+const defaultExportMatch = workerCode.match(/export\s*\{\s*(\w+)\s+as\s+default\s*\}/);
+if (!defaultExportMatch) {
+	console.error('❌ Could not find default export in worker. Scheduled handler not injected.');
+	process.exit(1);
+}
+
+const defaultVar = defaultExportMatch[0];
+const defaultVarName = defaultExportMatch[1];
+
+// Insert the scheduled handler before the export statement, then add scheduled to the default export object
+workerCode = workerCode.replace(
+	defaultVar,
+	scheduledHandler + `\n${defaultVarName}.scheduled = scheduled;\n` + defaultVar
+);
 
 // Write the modified worker
 writeFileSync(workerPath, workerCode);

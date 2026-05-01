@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { resolveRoute } from '$app/paths';
-	import { missions, getMissionForDay, getRandomMission } from '$lib/missions';
+	import { getMissionForDay, getRandomMission } from '$lib/missions';
 	import { Heart, Infinity as InfinityIcon, Sparkles, MapPinCheck, RefreshCcw } from '@jis3r/icons';
 	import EarthIcon from '$lib/components/icons/EarthIcon.svelte';
 	import { initDarkMode, getDarkMode } from '$lib/stores/dark-mode';
+	import { getLocale, t, type Locale } from '$lib/i18n';
 	import {
 		isMissionCompletedToday,
 		markMissionCompleted,
@@ -24,6 +25,22 @@
 	}
 	let { data }: Props = $props();
 
+	// i18n
+	let locale = $state<Locale>(getLocale());
+	let i18n = $state(t());
+
+	// Listen for locale changes from nav
+	$effect(() => {
+		if (browser) {
+			const handleLocaleChange = (e: CustomEvent<Locale>) => {
+				locale = e.detail;
+				i18n = t();
+			};
+			window.addEventListener('localeChange', handleLocaleChange as EventListener);
+			return () => window.removeEventListener('localeChange', handleLocaleChange as EventListener);
+		}
+	});
+
 	// Get today's mission based on the date
 	const today = new Date();
 	const { index: initialIndex } = getMissionForDay(today);
@@ -32,16 +49,22 @@
 	let currentMissionIndex = $state(initialIndex);
 	let hasShuffled = $state(false);
 
-	// Derived mission text
-	const todaysMission = $derived(missions[currentMissionIndex]);
+	// Derived mission text (reactive to locale changes)
+	const todaysMission = $derived(
+		getMissionForDay(today, locale).index === currentMissionIndex
+			? getMissionForDay(today, locale).mission
+			: getRandomMission(currentMissionIndex, locale).mission
+	);
 
 	// Format today's date nicely
-	const formattedDate = today.toLocaleDateString('en-US', {
-		weekday: 'long',
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric'
-	});
+	const formattedDate = $derived(
+		today.toLocaleDateString(locale === 'sv' ? 'sv-SE' : 'en-US', {
+			weekday: 'long',
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		})
+	);
 
 	let missionCompleted = $state(false);
 	let isCompletingMission = $state(false);
@@ -54,7 +77,6 @@
 		city?: string;
 		country?: string;
 	} | null>(null);
-
 
 	// Request user's location
 	async function requestLocation(): Promise<{ latitude: number; longitude: number } | null> {
@@ -98,7 +120,7 @@
 
 	// Shuffle to get a different random mission
 	function shuffleMission() {
-		const { index } = getRandomMission(currentMissionIndex);
+		const { index } = getRandomMission(currentMissionIndex, locale);
 		currentMissionIndex = index;
 		hasShuffled = true;
 	}
@@ -208,7 +230,8 @@
 				? 'text-gray-400'
 				: 'text-gray-600'}"
 		>
-			Help spreading kindness around the globe - it's free <Heart size={20} color="#f43f5e" />
+			{i18n.tagline}
+			<Heart size={20} color="#f43f5e" />
 		</p>
 	</header>
 
@@ -218,20 +241,26 @@
 		<div class="mb-10 space-y-4 text-center">
 			<div class="flex items-start gap-3 text-left">
 				<span class="text-3xl {darkMode ? 'text-gray-300' : 'text-gray-700'}">1.</span>
-				<p class="{darkMode ? 'text-gray-300' : 'text-gray-700'}">
-					<span class="font-semibold">Get your mission</span><br /><span class="text-sm text-gray-500">Every morning, a new act of kindness is revealed.</span>
+				<p class={darkMode ? 'text-gray-300' : 'text-gray-700'}>
+					<span class="font-semibold">{i18n.step1Title}</span><br /><span
+						class="text-sm text-gray-500">{i18n.step1Desc}</span
+					>
 				</p>
 			</div>
 			<div class="flex items-start gap-3 text-left">
 				<span class="text-3xl {darkMode ? 'text-gray-300' : 'text-gray-700'}">2.</span>
-				<p class="{darkMode ? 'text-gray-300' : 'text-gray-700'}">
-					<span class="font-semibold">Spread the light</span><br /><span class="text-sm text-gray-500">Complete the task in your local community.</span>
+				<p class={darkMode ? 'text-gray-300' : 'text-gray-700'}>
+					<span class="font-semibold">{i18n.step2Title}</span><br /><span
+						class="text-sm text-gray-500">{i18n.step2Desc}</span
+					>
 				</p>
 			</div>
 			<div class="flex items-start gap-3 text-left">
 				<span class="text-3xl {darkMode ? 'text-gray-300' : 'text-gray-700'}">3.</span>
-				<p class="{darkMode ? 'text-gray-300' : 'text-gray-700'}">
-					<span class="font-semibold">Map the joy</span><br /><span class="text-sm text-gray-500">Mark it as done and see your contribution appear in the global kindness map.</span>
+				<p class={darkMode ? 'text-gray-300' : 'text-gray-700'}>
+					<span class="font-semibold">{i18n.step3Title}</span><br /><span
+						class="text-sm text-gray-500">{i18n.step3Desc}</span
+					>
 				</p>
 			</div>
 		</div>
@@ -249,11 +278,11 @@
 		>
 			<div class="mb-6 text-center">
 				<span
-					class="inline-block px-4 py-2 rounded-full text-sm font-medium border-2 {darkMode
+					class="inline-block rounded-full border-2 px-4 py-2 text-sm font-medium {darkMode
 						? 'border-amber-400 text-amber-400'
 						: 'border-amber-700 text-amber-700'}"
 				>
-					Today's Mission
+					{i18n.todaysMission}
 				</span>
 			</div>
 
@@ -276,7 +305,7 @@
 						title="Can't do this one? Get a different mission"
 					>
 						<RefreshCcw size={16} />
-						{hasShuffled ? 'Try another' : "Can't do this one?"}
+						{hasShuffled ? i18n.tryAnother : i18n.cantDoThis}
 					</button>
 				</div>
 			{/if}
@@ -298,10 +327,10 @@
 									d="M5 13l4 4L19 7"
 								></path>
 							</svg>
-							Mission Completed!
+							{i18n.missionCompleted}
 						</div>
 						<p class="{darkMode ? 'text-gray-400' : 'text-gray-500'} text-sm">
-							You've spread kindness today! Come back tomorrow for a new mission.
+							{i18n.comeBackTomorrow}
 						</p>
 						{#if completionError}
 							<p class="text-sm text-amber-500">{completionError}</p>
@@ -312,7 +341,7 @@
 								? 'text-amber-400'
 								: 'text-amber-500'} hover:opacity-80"
 						>
-							See kindness spread around the world
+							{i18n.seeKindnessMap}
 						</a>
 					</div>
 				{:else}
@@ -323,9 +352,9 @@
 					>
 						<span class="inline-flex items-center gap-2">
 							{#if isCompletingMission}
-								Saving... <Heart size={16} color="white" class="inline" />
+								{i18n.saving} <Heart size={16} color="white" class="inline" />
 							{:else}
-								Mark as Complete <Sparkles size={16} color="white" class="inline" />
+								{i18n.markComplete} <Sparkles size={16} color="white" class="inline" />
 							{/if}
 						</span>
 					</button>
@@ -334,7 +363,8 @@
 							? 'text-gray-500'
 							: 'text-gray-400'}"
 					>
-						<MapPinCheck size={16} /> Your kindness will appear on the world map
+						<MapPinCheck size={16} />
+						{i18n.yourKindnessOnMap}
 					</p>
 				{/if}
 			</div>
@@ -349,7 +379,7 @@
 			>
 				<InfinityIcon size={40} color="#f43f5e" class="mx-auto" />
 				<p class="mt-1 text-sm text-balance {darkMode ? 'text-gray-400' : 'text-gray-600'}">
-					Acts of Kindness Possible
+					{i18n.actsOfKindnessPossible}
 				</p>
 			</div>
 			<div
@@ -359,7 +389,7 @@
 			>
 				<p class="text-3xl font-bold text-emerald-500">$0</p>
 				<p class="mt-1 text-sm text-balance {darkMode ? 'text-gray-400' : 'text-gray-600'}">
-					The cost of beeing kind to someone.
+					{i18n.costOfKindness}
 				</p>
 			</div>
 			<a
@@ -370,21 +400,22 @@
 			>
 				<EarthIcon class="mx-auto h-10 w-10 text-emerald-500" />
 				<p class="mt-1 text-sm text-balance {darkMode ? 'text-gray-400' : 'text-gray-600'}">
-					Kindness spread around the world
+					{i18n.kindnessAroundWorld}
 				</p>
 			</a>
 		</div>
 
 		<!-- Motivational Footer -->
 		<p class="mt-12 text-center text-sm {darkMode ? 'text-gray-500' : 'text-gray-500'}">
-			"No act of kindness, no matter how small, is ever wasted." — Aesop
+			{i18n.quoteAesop}
 		</p>
 	</main>
 
 	<!-- Site Footer -->
 	<footer class="py-6 pb-[92px] text-center md:pb-6 {darkMode ? 'text-gray-600' : 'text-gray-400'}">
 		<p class="text-xs">
-			Built with coffey, snus and passion for Svelte by <a
+			{i18n.builtWith}
+			<a
 				href="https://m7n.dev"
 				target="_blank"
 				rel="noopener noreferrer"

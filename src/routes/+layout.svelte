@@ -2,9 +2,16 @@
 	import './layout.css';
 	import { onMount } from 'svelte';
 	import { registerServiceWorker } from '$lib/push';
+	import { initLocale } from '$lib/i18n';
 	import FloatingNav from '$lib/components/FloatingNav.svelte';
+	import InstallPrompt from '$lib/components/InstallPrompt.svelte';
 
-	let { children } = $props();
+	let { children, data } = $props();
+
+	// Initialize locale from server-detected country (runs once on hydration)
+	$effect(() => {
+		initLocale(data.locale?.country);
+	});
 
 	onMount(() => {
 		// Register service worker for PWA and push notifications
@@ -23,4 +30,5 @@
 </svelte:head>
 
 <FloatingNav />
+<InstallPrompt />
 {@render children()}

@@ -20,19 +20,34 @@ export async function GET({ platform, url }: RequestEvent) {
 
 	// Optional query params for filtering
 	const limit = Math.min(parseInt(url.searchParams.get('limit') || '100'), 500);
-	const hours = parseInt(url.searchParams.get('hours') || '24'); // Last N hours
+	const hoursParam = url.searchParams.get('hours');
+	const hours = hoursParam ? parseInt(hoursParam) : 0;
 
 	try {
-		const { results } = await db
-			.prepare(
-				`SELECT id, mission_text, latitude, longitude, city, country, completed_at 
-				FROM mission_completions 
-				WHERE completed_at >= datetime('now', '-' || ? || ' hours')
-				ORDER BY completed_at DESC 
-				LIMIT ?`
-			)
-			.bind(hours, limit)
-			.all<MissionCompletion>();
+		let results: MissionCompletion[];
+
+		if (hours > 0) {
+			({ results } = await db
+				.prepare(
+					`SELECT id, mission_text, latitude, longitude, city, country, completed_at 
+					FROM mission_completions 
+					WHERE completed_at >= datetime('now', '-' || ? || ' hours')
+					ORDER BY completed_at DESC 
+					LIMIT ?`
+				)
+				.bind(hours, limit)
+				.all<MissionCompletion>());
+		} else {
+			({ results } = await db
+				.prepare(
+					`SELECT id, mission_text, latitude, longitude, city, country, completed_at 
+					FROM mission_completions 
+					ORDER BY completed_at DESC 
+					LIMIT ?`
+				)
+				.bind(limit)
+				.all<MissionCompletion>());
+		}
 
 		return json({
 			completions: results || [],

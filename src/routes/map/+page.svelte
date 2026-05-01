@@ -4,7 +4,11 @@
 	import { resolveRoute } from '$app/paths';
 	import { HandHeart } from '@jis3r/icons';
 	import { initDarkMode, getDarkMode } from '$lib/stores/dark-mode';
+	import { getLocale, t, type Locale } from '$lib/i18n';
 	import { isMissionCompletedToday } from '$lib/stores/mission-state';
+
+	let locale = $state<Locale>(getLocale());
+	let i18n = $state(t());
 
 	interface Completion {
 		id: number;
@@ -21,7 +25,7 @@
 	let error = $state<string | null>(null);
 	let mapContainer: HTMLDivElement;
 	let map: L.Map | null = null;
-	let hoursFilter = $state(168);
+	let hoursFilter = $state(0);
 
 	// Dark mode - use shared store
 	let darkMode = $state(true);
@@ -42,6 +46,13 @@
 				darkMode = e.detail;
 			};
 			window.addEventListener('darkModeChange', handleDarkModeChange as EventListener);
+
+			// Listen for locale changes
+			const handleLocaleChange = (e: CustomEvent<Locale>) => {
+				locale = e.detail;
+				i18n = t();
+			};
+			window.addEventListener('localeChange', handleLocaleChange as EventListener);
 		}
 
 		await loadCompletions();
@@ -52,7 +63,9 @@
 		loading = true;
 		error = null;
 		try {
-			const response = await fetch(`/api/completions?hours=${hoursFilter}&limit=500`);
+			const params = new URLSearchParams({ limit: '500' });
+			if (hoursFilter > 0) params.set('hours', String(hoursFilter));
+			const response = await fetch(`/api/completions?${params}`);
 			const data = (await response.json()) as { completions?: Completion[]; error?: string };
 			if (response.ok) {
 				completions = data.completions || [];
@@ -156,7 +169,7 @@
 </script>
 
 <svelte:head>
-	<title>KindSpread - World Map</title>
+	<title>{i18n.mapTitle}</title>
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 	<style>
 		.heart-marker {
@@ -214,11 +227,12 @@
 					? 'border-gray-700 bg-gray-800 text-gray-200'
 					: 'border-gray-200 bg-white text-gray-800'}"
 			>
-				<option value={1}>Last hour</option>
-				<option value={6}>Last 6 hours</option>
-				<option value={24}>Last 24 hours</option>
-				<option value={72}>Last 3 days</option>
-				<option value={168}>Last week</option>
+				<option value={0}>{i18n.filterAllTime}</option>
+				<option value={1}>{i18n.filterLastHour}</option>
+				<option value={6}>{i18n.filterLast6Hours}</option>
+				<option value={24}>{i18n.filterLast24Hours}</option>
+				<option value={72}>{i18n.filterLast3Days}</option>
+				<option value={168}>{i18n.filterLastWeek}</option>
 			</select>
 		</div>
 	</header>
@@ -234,13 +248,13 @@
 				<p class="text-xl font-bold {darkMode ? 'text-white' : 'text-gray-800'}">
 					{completions.length}
 				</p>
-				<p class="text-sm {darkMode ? 'text-gray-400' : 'text-gray-500'}">acts of kindness</p>
+				<p class="text-sm {darkMode ? 'text-gray-400' : 'text-gray-500'}">{i18n.actsOfKindness}</p>
 				{#if !missionCompleted}
 					<a
 						href={resolveRoute('/')}
 						class="rounded-full bg-linear-to-r from-rose-500 to-amber-500 px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-lg"
 					>
-						Complete Your Mission
+						{i18n.completeYourMission}
 					</a>
 				{/if}
 			</div>
@@ -258,7 +272,7 @@
 				<div class="text-center">
 					<HandHeart size={48} color="#10b981" class="mx-auto mb-2" />
 					<p class={darkMode ? 'text-gray-400' : 'text-gray-600'}>
-						Loading kindness around the world...
+						{i18n.loadingMap}
 					</p>
 				</div>
 			</div>
@@ -271,7 +285,7 @@
 			>
 				<div class="text-center text-red-500">
 					<p>{error}</p>
-					<button onclick={loadCompletions} class="mt-2 underline">Retry</button>
+					<button onclick={loadCompletions} class="mt-2 underline">{i18n.retry}</button>
 				</div>
 			</div>
 		{/if}
@@ -281,7 +295,8 @@
 	<!-- Footer -->
 	<footer class="py-4 text-center {darkMode ? 'text-gray-600' : 'text-gray-400'}">
 		<p class="text-xs">
-			Built with coffee, Swedish snus and passion for Svelte by <a
+			{i18n.builtWith}
+			<a
 				href="https://m7n.dev"
 				target="_blank"
 				rel="noopener noreferrer"

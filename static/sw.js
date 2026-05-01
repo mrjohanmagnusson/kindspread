@@ -7,7 +7,12 @@ self.addEventListener('install', (event) => {
 	console.log('[SW] Installing...');
 	event.waitUntil(
 		caches.open(CACHE_NAME).then((cache) => {
-			return cache.addAll(['/', '/manifest.json']);
+			return cache.addAll([
+				'/',
+				'/manifest.json',
+				'/icons/icon-192.svg',
+				'/icons/icon-512.svg'
+			]);
 		})
 	);
 	self.skipWaiting();
@@ -98,10 +103,38 @@ self.addEventListener('notificationclick', (event) => {
 
 // Fetch event - network first, fall back to cache
 self.addEventListener('fetch', (event) => {
+	const { request } = event;
+
+	// Skip non-GET requests
+	if (request.method !== 'GET') return;
+
+	// For navigation requests, try network first then fall back to cached index
+	if (request.mode === 'navigate') {
+		event.respondWith(
+			fetch(request)
+				.then((response) => {
+					// Cache the latest page
+					const clone = response.clone();
+					caches.open(CACHE_NAME).then((cache) => cache.put('/', clone));
+					return response;
+				})
+				.catch(() => caches.match('/'))
+		);
+		return;
+	}
+
+	// For other requests, network first with cache fallback
 	event.respondWith(
-		fetch(event.request).catch(() => {
-			return caches.match(event.request);
-		})
+		fetch(request)
+			.then((response) => {
+				// Cache successful responses for static assets
+				if (response.ok && request.url.startsWith(self.location.origin)) {
+					const clone = response.clone();
+					caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+				}
+				return response;
+			})
+			.catch(() => caches.match(request))
 	);
 });
 
