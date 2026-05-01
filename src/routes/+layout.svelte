@@ -10,7 +10,7 @@
 
 	// Initialize locale from server-detected country (runs once on hydration)
 	$effect(() => {
-		initLocale(data.locale?.country);
+		initLocale(data.locale?.country, data.locale?.prefersSv);
 	});
 
 	onMount(() => {
