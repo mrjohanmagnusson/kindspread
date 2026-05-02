@@ -4,6 +4,7 @@
 	import { getMissionForDay, getRandomMission } from '$lib/missions';
 	import { Heart, Infinity as InfinityIcon, Sparkles, MapPinCheck, RefreshCcw } from '@jis3r/icons';
 	import EarthIcon from '$lib/components/icons/EarthIcon.svelte';
+	import NotifReminder from '$lib/components/NotifReminder.svelte';
 	import { initDarkMode, getDarkMode } from '$lib/stores/dark-mode';
 	import { getLocale, t, type Locale } from '$lib/i18n';
 	import {
@@ -369,6 +370,9 @@
 				{/if}
 			</div>
 		</div>
+
+		<!-- Notification Reminder -->
+		<NotifReminder />
 
 		<!-- Stats/Info Section -->
 		<div class="mt-8 grid grid-cols-3 gap-4">

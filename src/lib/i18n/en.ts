@@ -69,5 +69,11 @@ export const en = {
 	navNotificationsOff: 'Turn off daily reminders',
 	navNotificationsOn: 'Turn on daily reminders',
 	navLightMode: 'Switch to light mode',
-	navDarkMode: 'Switch to dark mode'
+	navDarkMode: 'Switch to dark mode',
+
+	// Notification reminder
+	notifReminderTitle: 'Never miss a mission!',
+	notifReminderText: 'Turn on notifications to get your daily kindness mission every morning.',
+	notifReminderButton: 'Enable Notifications',
+	notifReminderDismiss: 'Not now'
 } as const;

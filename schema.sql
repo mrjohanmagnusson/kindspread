@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
     endpoint TEXT UNIQUE NOT NULL,
     p256dh TEXT NOT NULL,
     auth TEXT NOT NULL,
+    locale TEXT DEFAULT 'en',
     created_at TEXT DEFAULT (datetime('now')),
     last_sent_at TEXT,
     active INTEGER DEFAULT 1

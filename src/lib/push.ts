@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { getLocale } from '$lib/i18n';
 
 /**
  * Check if push notifications are supported
@@ -101,7 +102,10 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
 		const saveResponse = await fetch('/api/push/subscribe', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(subscription.toJSON())
+			body: JSON.stringify({
+				...subscription.toJSON(),
+				locale: getLocale()
+			})
 		});
 
 		if (!saveResponse.ok) {
@@ -158,5 +162,31 @@ export async function isSubscribedToPush(): Promise<boolean> {
 		return subscription !== null;
 	} catch {
 		return false;
+	}
+}
+
+/**
+ * Update the locale for an existing push subscription
+ */
+export async function updatePushLocale(): Promise<void> {
+	if (!browser || !('serviceWorker' in navigator)) return;
+
+	try {
+		const registration = await getServiceWorkerRegistration();
+		if (!registration) return;
+
+		const subscription = await registration.pushManager.getSubscription();
+		if (!subscription) return;
+
+		await fetch('/api/push/subscribe', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				...subscription.toJSON(),
+				locale: getLocale()
+			})
+		});
+	} catch (error) {
+		console.error('Error updating push locale:', error);
 	}
 }

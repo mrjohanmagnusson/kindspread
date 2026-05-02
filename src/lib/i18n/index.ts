@@ -68,6 +68,8 @@ export function setLocale(locale: Locale): void {
 	if (browser) {
 		localStorage.setItem(STORAGE_KEY, locale);
 		window.dispatchEvent(new CustomEvent('localeChange', { detail: locale }));
+		// Update push subscription locale in background
+		import('$lib/push').then(({ updatePushLocale }) => updatePushLocale()).catch(() => {});
 	}
 }
 

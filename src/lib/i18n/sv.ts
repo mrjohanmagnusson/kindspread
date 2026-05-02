@@ -71,5 +71,11 @@ export const sv: Translations = {
 	navNotificationsOff: 'Stäng av dagliga påminnelser',
 	navNotificationsOn: 'Slå på dagliga påminnelser',
 	navLightMode: 'Byt till ljust läge',
-	navDarkMode: 'Byt till mörkt läge'
+	navDarkMode: 'Byt till mörkt läge',
+
+	// Notification reminder
+	notifReminderTitle: 'Missa aldrig ett uppdrag!',
+	notifReminderText: 'Slå på notiser för att få ditt dagliga snällhetsuppdrag varje morgon.',
+	notifReminderButton: 'Slå på notiser',
+	notifReminderDismiss: 'Inte nu'
 };

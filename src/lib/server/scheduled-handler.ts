@@ -4,12 +4,14 @@
  */
 
 import { getMissionForDay } from '$lib/missions';
+import type { Locale } from '$lib/i18n';
 import { createVapidAuthHeader, encryptPayload } from './web-push';
 
 interface PushSubscription {
 	endpoint: string;
 	p256dh: string;
 	auth: string;
+	locale: string;
 }
 
 interface Env {
@@ -44,12 +46,17 @@ export async function handleScheduled(
 		return;
 	}
 
-	// Get today's mission from the shared missions source
-	const { mission } = getMissionForDay(new Date());
+	// Use the scheduled time to determine "today" — this ensures consistency
+	// with what the user sees when they open the app (which also uses new Date())
+	const today = new Date(event.scheduledTime);
 
-	// Get all active subscriptions
+	// Get missions for each supported locale
+	const missionEn = getMissionForDay(today, 'en').mission;
+	const missionSv = getMissionForDay(today, 'sv').mission;
+
+	// Get all active subscriptions including locale
 	const { results } = await db
-		.prepare('SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE active = 1')
+		.prepare('SELECT endpoint, p256dh, auth, locale FROM push_subscriptions WHERE active = 1')
 		.all<PushSubscription>();
 
 	if (!results || results.length === 0) {
@@ -59,21 +66,25 @@ export async function handleScheduled(
 
 	console.log(`Sending notifications to ${results.length} subscribers`);
 
-	const payload = JSON.stringify({
-		title: 'Your Daily Kindness Mission',
-		body: mission,
-		icon: '/icons/icon-192.svg',
-		badge: '/icons/icon-192.svg',
-		tag: 'daily-mission',
-		data: { url: '/' }
-	});
-
 	let successCount = 0;
 	let failCount = 0;
 
 	// Process subscriptions in parallel with a concurrency limit
 	const sendNotification = async (subscription: PushSubscription): Promise<void> => {
 		try {
+			const locale = (subscription.locale || 'en') as Locale;
+			const mission = locale === 'sv' ? missionSv : missionEn;
+			const title = locale === 'sv' ? 'Dagens vänlighetsuppdrag' : 'Your Daily Kindness Mission';
+
+			const payload = JSON.stringify({
+				title,
+				body: mission,
+				icon: '/icons/icon-192.svg',
+				badge: '/icons/icon-192.svg',
+				tag: 'daily-mission',
+				data: { url: '/' }
+			});
+
 			const encrypted = await encryptPayload(payload, subscription.p256dh, subscription.auth);
 
 			const vapidHeaders = await createVapidAuthHeader(
@@ -120,4 +131,3 @@ export async function handleScheduled(
 		})
 	);
 }
-

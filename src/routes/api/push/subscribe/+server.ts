@@ -3,12 +3,13 @@ import type { RequestEvent } from '@sveltejs/kit';
 
 export async function POST({ request, platform }: RequestEvent) {
 	try {
-		const subscription = (await request.json()) as {
+		const body = (await request.json()) as {
 			endpoint?: string;
 			keys?: { p256dh?: string; auth?: string };
+			locale?: string;
 		};
 
-		if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
+		if (!body?.endpoint || !body?.keys?.p256dh || !body?.keys?.auth) {
 			return json({ error: 'Invalid subscription object' }, { status: 400 });
 		}
 
@@ -18,17 +19,20 @@ export async function POST({ request, platform }: RequestEvent) {
 			return json({ error: 'Database not configured' }, { status: 500 });
 		}
 
+		const locale = body.locale === 'sv' ? 'sv' : 'en';
+
 		// Upsert subscription (insert or update if exists)
 		await db
 			.prepare(
-				`INSERT INTO push_subscriptions (endpoint, p256dh, auth, active)
-				VALUES (?, ?, ?, 1)
+				`INSERT INTO push_subscriptions (endpoint, p256dh, auth, locale, active)
+				VALUES (?, ?, ?, ?, 1)
 				ON CONFLICT(endpoint) DO UPDATE SET
 					p256dh = excluded.p256dh,
 					auth = excluded.auth,
+					locale = excluded.locale,
 					active = 1`
 			)
-			.bind(subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth)
+			.bind(body.endpoint, body.keys.p256dh, body.keys.auth, locale)
 			.run();
 
 		return json({ success: true, message: 'Subscription saved' });
